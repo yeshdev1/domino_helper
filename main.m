@@ -1,2 +1,2 @@
-squareDetector
+gameRegion
 
