@@ -5,4 +5,6 @@
 %that the image is set up for the next function
 region = gameRegion;
 
+imshow(region);
+
 corners = cornerDetector(region);

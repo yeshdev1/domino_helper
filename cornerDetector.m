@@ -7,8 +7,8 @@ image1 = fullfile('data','Domino_game.jpg');
 region2 = imcomplement(region);
 corners = region;
 
-[B,L] = bwboundaries(region,'noholes');
-disp(B);
+[B,L] = bwboundaries(region);
+disp(B{3});
 imshow(label2rgb(L, @jet, [.5 .5 .5]))
 hold on
 for k = 1:length(B)
