@@ -4,7 +4,9 @@
 
 function [region] = gameRegion
 
-image1 = fullfile('data','Domino_game.jpg');
+image1 = fullfile('data','five_dominos.jpg');
+%aveFilter = fspecial('average', [35 35]);
+%image1= imfilter(image1, aveFilter, 'replicate');
 imdata = imread(image1);
 imdata = rgb2gray(imdata);
 threshold = graythresh(imdata);
