@@ -203,10 +203,35 @@ adjacentDoms = relations;
 [cols, colSums, colEnds] = getCols(dominos, adjacentDoms);
 
 
+numRows = length(rowSums);
+numCols = length(colSums);
 
+textPositions = zeros(numRows + numCols, 2);
+textValues = cell(numRows + numCols, 1);
 
+for  i = 1 : numRows
+    textValues{i} = num2str(rowSums(i));
+    
+    [xLoc, yLoc] = rowSumLoc(dominos, rows{i}, lineLength);
+    
+    textPositions(i, 1) = xLoc;
+    textPositions(i, 2) = yLoc;
+end
 
+for i = 1 : numCols
+    textValues{numRows + i} = num2str(rowSums(i));
+    
+    [xLoc, yLoc] = rowSumLoc(dominos, cols{i}, lineLength);
+    
+    textPositions(numRows + i, 1) = xLoc;
+    textPositions(numRows + i, 2) = yLoc;
+end
 
+RGB = insertText(img, textPositions, textValues, 'FontSize', 18, 'TextColor', 'white');
+
+figure;
+imshow(RGB)
+title('Domino Counter');
 
 
 imshow(label2rgb(L, @jet, [.5 .5 .5]))
