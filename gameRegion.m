@@ -4,8 +4,12 @@
 
 function [region] = gameRegion(img)
 
-aveFilter = fspecial('average', [25 25]);
+imshow(img);
+
+aveFilter = fspecial('average', [15 15]);
 img= imfilter(img, aveFilter, 'replicate');
+
+imshow(img);
 
 imdata = rgb2gray(img);
 threshold = graythresh(imdata);

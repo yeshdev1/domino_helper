@@ -20,12 +20,12 @@ for i = 1 : numDominos
             else % otherDom = horizontal
                 if (type == 10)
                     domino = i;
-                    orientation = 3;
+                    orientation = 2;
                     return;
                 end
                 if (type == 11)
                     domino = i;
-                    orientation = 2;
+                    orientation = 3;
                     return;
                 end
                 if (type == 12)
@@ -35,7 +35,7 @@ for i = 1 : numDominos
                 end
             end
         else % ThisDom = horizontal
-            if (rowOrient == 0) % Checking for a right col
+            if (rowOrient == 3) % Checking for a right col
                 if (otherDom(5) == 0) % otherDom is vertical
                     if (type == 10)
                         domino = i;
@@ -51,7 +51,7 @@ for i = 1 : numDominos
                 end
             end
                 
-            if (rowOrient == 1) % Checking for left col
+            if (rowOrient == 2) % Checking for left col
                 if (otherDom(5) == 0) % otherDom is vertical
                     if (type == 11)
                         domino = i;
@@ -67,7 +67,7 @@ for i = 1 : numDominos
                 end
             end
             
-            if (rowOrient == 2) % Checking middle col
+            if (rowOrient == 4) % Checking middle col
                  if (otherDom(5) == 0) % otherDom is vertical
                     if (type == 12)
                         domino = i;

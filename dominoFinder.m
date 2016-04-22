@@ -9,6 +9,7 @@ corners = region;
 [B,L] = bwboundaries(region);
 
 [height, width] = size(img);
+
 % Find the number of circles in the image and average circumference
 [numCells, ~] = size(B);
 
@@ -38,6 +39,8 @@ end
     
 sumOfCircs = 0;
 
+% Find average circle size
+
 for i = 1 : numCells
     circ = size(B{i}, 1);
 
@@ -61,13 +64,13 @@ index = 1;
 for i = 1 : numCells
     circ = size(B{i}, 1);
 
-    if (abs(centerLineEstimate - circ) > 50)
+    if (abs(centerLineEstimate - circ) > 80)
         delete_these(index)=i;
         index=index+1;
     end
 end
 
-%remove noise
+% Extract Center Lines
 for i=1:length(delete_these)
    centerLines{delete_these(i)} = []; 
 end
@@ -75,6 +78,8 @@ centerLines = centerLines(~cellfun('isempty',centerLines));
 
 dominos = zeros(length(centerLines), 7);
 
+
+% Extract dominos from center lines
 % [ topLine bottomLine leftLine rightLine vert(0)/hor(1) top/leftDots
 % bottom/rightDots]
 
@@ -92,6 +97,7 @@ for i = 1 : numDominos
     for j = 1 : length(centerLines{i})
         if (centerLines{i}(j,1) < top)
             top = centerLines{i}(j,1);
+            topX = centerLines{i}(j,2);
         end
         if (centerLines{i}(j,1) > bottom)
             bottom = centerLines{i}(j,1);
@@ -109,6 +115,7 @@ for i = 1 : numDominos
     dominos(i, 3) = left;
     dominos(i, 4) = right;
     
+    % Horizontal or vertical)
     lineLength = 0;
     if (abs(left - right) < abs(top - bottom))
         dominos(i, 5) = 1;
@@ -117,6 +124,7 @@ for i = 1 : numDominos
         lineLength = abs(left - right);
     end
     
+    %Get Domino Values
     topLeftDots = 0;
     bottomRightDots = 0;
     
@@ -177,241 +185,22 @@ for i = 1 : numDominos
     
 end
 
+
+
+
 % Classify if dominos are in the same row or column
 
-relations = zeros(numDominos);
-
-% 2 Verticals: 1 = SCT, 2 = SCB, 3 = SRTR, 4 = SRTL, 5 =SRBR, 6=SRBL
-
-% 2 Horizontals: 1 = SRR, 2 = SRL, 3 = SCTR, 4 = SCTL, 5 = SCBR, SCBL
-
-% Vert & Hor: 1 = SRTR, 2 = SRBR, 3 = SRER, 4 = SRTL, 5 = SRBL, 6 = SREL
-%            7 = SCTR, 8 = SCTL, 9 = SCTE, 10 = SCBR, 11 = SCBL, 12 = SCBE
-
-err = .25*lineLength;
-lineLength = 1.1*lineLength;
-
-for i = 1 : numDominos
-    for j = 1 : numDominos
-        d1 = dominos(i,:);
-        d2 = dominos(j,:);
-        if (d1(5) == 0) % I is vertical
-            if (d2(5) == 0) % J is vertical
-                
-                %Same Col Top
-                if (abs(d1(3) - d2(3)) < err && abs(d1(1)-2*lineLength - d2(2)) < err)
-                    relations(i,j) = 1;
-                end
-                
-                %Same Col Bottom
-                if (abs(d1(3) - d2(3)) < err && abs(d1(1)+2*lineLength - d2(2)) < err)
-                    relations(i,j) = 2;
-                end
-                
-                % Same Row Top Right
-                if (abs((d1(1)-lineLength) - d2(1)) < err && abs((d1(4)+.2*lineLength)-d2(3)) < err)
-                    relations(i,j) = 3;
-                end
-                
-                % Same Row Top Left
-                if (abs((d1(1)-lineLength) - d2(1)) < err && abs((d1(3)-.2*lineLength)-d2(4)) < err)
-                    relations(i,j) = 4;
-                end
-                
-                % Same Row Bottom Right
-                if (abs((d1(1)+lineLength) - d2(1)) < err && abs((d1(4)+.2*lineLength)-d2(3)) < err)
-                    relations(i,j) = 5;
-                end
-                
-                % Same Row Bottom Left
-                if (abs((d1(1)+lineLength) - d2(1)) < err && abs((d1(3)-.2*lineLength)-d2(4)) < err)
-                    relations(i,j) = 6;
-                end
-                
-                
-                
-            else % J is horizontal
-
-                % Same Row Top Right
-                if (abs(d1(1) - d2(2)) < err && abs((d1(4)+lineLength) - d2(3)) < err)
-                    relations(i,j) = 1;
-                end
-                
-                % Same Row Bottom Right
-                if (abs(d1(2) - d2(1)) < err && abs((d1(4)+lineLength) - d2(3)) < err)
-                    relations(i,j) = 2;
-                end
-                
-                % Same Row Even Right
-                if (abs((d1(1)-.5*lineLength) - d2(1)) < err && abs((d1(4)+lineLength) - d2(3)) < err)
-                    relations(i,j) = 3;
-                end
-                
-                % Same Row Top Left
-                if (abs(d1(1) - d2(2)) < err && abs((d1(3)-lineLength) - d2(4)) < err)
-                    relations(i,j) = 4;
-                end
-                
-                % Same Row Bottom Left
-                if (abs(d1(2) - d2(1)) < err && abs((d1(3)-lineLength) - d2(4)) < err)
-                    relations(i,j) = 5;
-                end
-                
-                % Same Row Even Left
-                if (abs((d1(1)-.5*lineLength) - d2(1)) < err && abs((d1(3)-lineLength) - d2(4)) < err)
-                    relations(i,j) = 6;
-                end
-                
-                % Same Col Top Right
-                if (abs(d1(4) - d2(3)) < err && abs((d1(1)-lineLength) - d2(2)) < err)
-                    relations(i,j) = 7;
-                end
-                
-                % Same Col Top Left
-                if (abs(d1(3) - d2(4)) < err && abs((d1(1)-lineLength) - d2(2)) < err)
-                    relations(i,j) = 8;
-                end
-                
-                % Same Col Top Even
-                if (abs((d1(4)-.5*lineLength) - d2(4)) < err && abs((d1(1)-lineLength) - d2(2)) < err)
-                    relations(i,j) = 9;
-                end
-                
-                % Same Col Bottom Right
-                if (abs(d1(4) - d2(3)) < err && abs((d1(2)+lineLength) - d2(1)) < err)
-                    relations(i,j) = 10;
-                end
-               
-                % Same Col Bottom Left
-                if (abs(d1(3) - d2(4)) < err && abs((d1(2)+lineLength) - d2(1)) < err)
-                    relations(i,j) = 11;
-                end
-                
-                % Same Col Bottom Even
-                if (abs((d1(4)-.5*lineLength) - d2(4)) < err && abs((d1(2)+lineLength) - d2(1)) < err)
-                    relations(i,j) = 12;
-                end
-                
-            end      
-            
-        else % I is horizontal
-            
-            if (dominos(j, 5) == 1) % J is horizontal
-                
-                 %Same Row Right
-                if (abs(d1(1) - d2(1)) < err && abs(d1(4)+2*lineLength - d2(3)) < err)
-                    relations(i,j) = 1;
-                end
-                
-                %Same Row Left
-                if (abs(d1(1) - d2(1)) < err && abs(d1(3)-2*lineLength - d2(4)) < err)
-                    relations(i,j) = 2;
-                end
-                
-                % Same Col Top Right
-                if (abs((d1(4)+lineLength) - d2(3)) < err && abs((d1(1)-.2*lineLength)-d2(2)) < err)
-                    relations(i,j) = 3;
-                end
-                
-                % Same Col Top Left
-                if (abs((d1(3)-lineLength) - d2(4)) < err && abs((d1(1)-.2*lineLength)-d2(2)) < err)
-                    relations(i,j) = 4;
-                end
-                
-                % Same Col Bottom Right
-                if (abs((d1(4)+lineLength) - d2(3)) < err && abs((d1(2)+.2*lineLength)-d2(1)) < err)
-                    relations(i,j) = 5;
-                end
-                
-                % Same Col Bottom Left
-                if (abs((d1(3)-lineLength) - d2(4)) < err && abs((d1(2)+.2*lineLength)-d2(1)) < err)
-                    relations(i,j) = 6;
-                end
-                
-            else % J is vertical
-                
-                % Same Row Top Right
-                if (abs(d1(1) - d2(2)) < err && abs((d1(4)+lineLength) - d2(3)) < err)
-                    relations(i,j) = 1;
-                end
-                
-                % Same Row Bottom Right
-                if (abs(d1(2) - d2(1)) < err && abs((d1(4)+lineLength) - d2(3)) < err)
-                    relations(i,j) = 2;
-                end
-                
-                % Same Row Even Right
-                if (abs((d1(1)-.5*lineLength) - d2(1)) < err && abs((d1(4)+lineLength) - d2(3)) < err)
-                    relations(i,j) = 3;
-                end
-                
-                % Same Row Top Left
-                if (abs(d1(1) - d2(2)) < err && abs((d1(3)-lineLength) - d2(4)) < err)
-                    relations(i,j) = 4;
-                end
-                
-                % Same Row Bottom Left
-                if (abs(d1(2) - d2(1)) < err && abs((d1(3)-lineLength) - d2(4)) < err)
-                    relations(i,j) = 5;
-                end
-                
-                % Same Row Even Left
-                if (abs((d1(1)-.5*lineLength) - d2(1)) < err && abs((d1(3)-lineLength) - d2(4)) < err)
-                    relations(i,j) = 6;
-                end
-                
-                % Same Col Top Right
-                if (abs(d1(4) - d2(3)) < err && abs((d1(1)-lineLength) - d2(2)) < err)
-                    relations(i,j) = 7;
-                end
-                
-                % Same Col Top Left
-                if (abs(d1(3) - d2(4)) < err && abs((d1(1)-lineLength) - d2(2)) < err)
-                    relations(i,j) = 8;
-                end
-                
-                % Same Col Top Even
-                if (abs((d1(4)-.5*lineLength) - d2(4)) < err && abs((d1(1)-lineLength) - d2(2)) < err)
-                    relations(i,j) = 9;
-                end
-                
-                % Same Col Bottom Right
-                if (abs(d1(4) - d2(3)) < err && abs((d1(2)+lineLength) - d2(1)) < err)
-                    relations(i,j) = 10;
-                end
-               
-                % Same Col Bottom Left
-                if (abs(d1(3) - d2(4)) < err && abs((d1(2)+lineLength) - d2(1)) < err)
-                    relations(i,j) = 11;
-                end
-                
-                % Same Col Bottom Even
-                if (abs((d1(4)-.5*lineLength) - d2(4)) < err && abs((d1(2)+lineLength) - d2(1)) < err)
-                    relations(i,j) = 12;
-                end               
-            end             
-        end
-    end
-end
-
-
-% Sum Rows & Cols
-
-
+relations = adjHelper(dominos, lineLength);
 
 adjacentDoms = relations;
 
-for i = 1 : numDominos
-    for j = i+1 : numDominos
-        first = dominos(i,:);
-        next = dominos(j,:);
-        
-        
-        
-        
-    end
-end
 
+% Get Rows
+
+[rows, rowSums, rowEnds] = getRows(dominos, adjacentDoms);
+
+% Get Cols
+[cols, colSums, colEnds] = getCols(dominos, adjacentDoms);
 
 
 
@@ -433,8 +222,8 @@ for k = 1:length(B)
    end
 end
 
-sum = sum - (num_dominos*2) -1;
-disp(num_dominos);
+sum = sum - (numDominos*2) -1;
+disp(numDominos);
 disp(sum);
 
 end

@@ -6,13 +6,17 @@
 
 
 
-selector = 5;
+selector = 9;
 
 image1 = 'IMG_0660.JPG';
 image2 = 'IMG_4421.JPG';
 image3 = 'IMG_4759.JPG';
 image4 = 'IMG_7010.JPG';
 image5 = 'IMG_4384.JPG'; 
+image6 = 'IMG_6365.PNG';
+image7 = 'slantedRight.jpg';
+image8 = 'slantedRight.jpg';
+image9 = 'manyRows.jpg';
 
 dataDir = fullfile('data');
 
@@ -30,7 +34,20 @@ if (selector == 4)
 end
 if (selector == 5)
     img = imread(fullfile(dataDir, image5));
-end    
+end   
+if (selector == 6)
+    img = imread(fullfile(dataDir, image6));
+end 
+if (selector == 7)
+    img = imread(fullfile(dataDir, image7));
+end 
+if (selector == 8)
+    img = imread(fullfile(dataDir, image8));
+end 
+if (selector == 9)
+    img = imread(fullfile(dataDir, image9));
+end 
+
 
 
 region = gameRegion(img);
