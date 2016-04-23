@@ -4,16 +4,16 @@ function [xLoc, yLoc] = colSumLoc(dominos, line, lineLength)
 last = line(:, numDoms);
 
 lastDom = dominos(last(1),:);
-correct = 0;
+correct = lineLength * .25;
 
 if (last(2) == 1)   % Vertical
     
-    yLoc = lastDom(2) + 2* lineLength;
-    xLoc = (lastDom(1) + lastDom(2))/2 - correct;
+    yLoc = lastDom(2) + 1.5 * lineLength;
+    xLoc = (lastDom(3) + lastDom(4))/2 - correct;
     
 else
 
-    yLoc = lastDom(2) + lineLength;
+    yLoc = lastDom(2) + .5 * lineLength;
     
     if (last(2) == 2)   % Left
         xLoc = lastDom(3) - .5 * lineLength - correct;

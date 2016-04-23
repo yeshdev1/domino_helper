@@ -219,36 +219,39 @@ for  i = 1 : numRows
 end
 
 for i = 1 : numCols
-    textValues{numRows + i} = num2str(rowSums(i));
+    textValues{numRows + i} = num2str(colSums(i));
     
-    [xLoc, yLoc] = rowSumLoc(dominos, cols{i}, lineLength);
+    [xLoc, yLoc] = colSumLoc(dominos, cols{i}, lineLength);
     
     textPositions(numRows + i, 1) = xLoc;
     textPositions(numRows + i, 2) = yLoc;
 end
 
-RGB = insertText(img, textPositions, textValues, 'FontSize', 18, 'TextColor', 'white');
+
+% Print Row and Col sums
+
+RGB = insertText(img, textPositions, textValues, 'FontSize', 70,'BoxColor', 'black', 'TextColor', 'white');
 
 figure;
 imshow(RGB)
 title('Domino Counter');
 
 
-imshow(label2rgb(L, @jet, [.5 .5 .5]))
-hold on
-index=1;
-sum=0;
-for k = 1:length(B)
-   if size(B{k},1)>0
-       sum=sum+1;
-       index=index+1;
-       boundary = B{k};
-       plot(boundary(:,2), boundary(:,1), 'w', 'LineWidth', 2)
-   end
-end
-
-sum = sum - (numDominos*2) -1;
-disp(numDominos);
-disp(sum);
+% imshow(label2rgb(L, @jet, [.5 .5 .5]))
+% hold on
+% index=1;
+% sum=0;
+% for k = 1:length(B)
+%    if size(B{k},1)>0
+%        sum=sum+1;
+%        index=index+1;
+%        boundary = B{k};
+%        plot(boundary(:,2), boundary(:,1), 'w', 'LineWidth', 2)
+%    end
+% end
+% 
+% sum = sum - (numDominos*2) -1;
+% disp(numDominos);
+% disp(sum);
 
 end
