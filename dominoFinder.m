@@ -20,8 +20,9 @@ corners = region;
 
 
 
-[B1,L] = mooreTracing(region);
-[B,L] = bwboundaries(region);
+[B,L] = mooreTracing(region);
+B = B';
+%[B,L] = bwboundaries(region);
 
 [height, width] = size(img);
 
