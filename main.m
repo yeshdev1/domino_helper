@@ -6,7 +6,7 @@
 
 
 
-selector = 9;
+selector = 4;
 
 image1 = 'IMG_0660.JPG';
 image2 = 'IMG_4421.JPG';
@@ -47,8 +47,6 @@ end
 if (selector == 9)
     img = imread(fullfile(dataDir, image9));
 end 
-
-
 
 region = gameRegion(img);
 

@@ -6,22 +6,29 @@ function [corners] = dominoFinder(region, img)
 region2 = imcomplement(region);
 corners = region;
 
-% toc
-% 
-% tic
-% [B,L] = bwboundaries(region);
-% imshow(region);
-% hold on
-% for k = 1:length(B)
-%        boundary = B{k};
-%        plot(boundary(:,2), boundary(:,1), 'r', 'LineWidth', 2)
-% end
-% x = toc;
+tic
+[B,L] = mooreTracing(region);
+imshow(region);
+hold on
+for k = 1:length(B)
+       boundary = B{k};
+       plot(boundary(:,2), boundary(:,1), 'r', 'LineWidth', 2)
+end
+toc
 
-
-
-[B1,L] = mooreTracing(region);
+tic
 [B,L] = bwboundaries(region);
+imshow(region);
+hold on
+for k = 1:length(B)
+       boundary = B{k};
+       plot(boundary(:,2), boundary(:,1), 'r', 'LineWidth', 2)
+end
+x = toc;
+
+
+
+disp(1);
 
 [height, width] = size(img);
 
@@ -200,6 +207,9 @@ for i = 1 : numDominos
     
 end
 
+
+
+
 % Classify if dominos are in the same row or column
 
 relations = adjHelper(dominos, lineLength);
@@ -242,11 +252,11 @@ end
 
 % Print Row and Col sums
 
-%RGB = insertText(img, textPositions, textValues, 'FontSize', 70,'BoxColor', 'black', 'TextColor', 'white');
+RGB = insertText(img, textPositions, textValues, 'FontSize', 70,'BoxColor', 'black', 'TextColor', 'white');
 
-%figure;
-%imshow(RGB)
-%title('Domino Counter');
+figure;
+imshow(RGB)
+title('Domino Counter');
 
 
 % imshow(label2rgb(L, @jet, [.5 .5 .5]))

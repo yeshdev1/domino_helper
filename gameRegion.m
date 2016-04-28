@@ -10,6 +10,7 @@ aveFilter = fspecial('average', [15 15]);
 img= imfilter(img, aveFilter, 'replicate');
 
 imshow(img);
+disp(1);
 
 imdata = rgb2gray(img);
 threshold = graythresh(imdata);
@@ -18,4 +19,6 @@ imshow(BW);
 BW = ~ BW;
 region = BW;
 
+imshow(region);
+disp(1);
 end
