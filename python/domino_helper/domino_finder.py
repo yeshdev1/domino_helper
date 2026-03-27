@@ -259,4 +259,4 @@ def domino_finder(region, img):
             lineType=cv2.LINE_AA
         )
 
-    return dominos, annotated
+    return dominos, annotated, rows, row_sums, cols, col_sums

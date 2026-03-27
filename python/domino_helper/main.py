@@ -62,7 +62,7 @@ def main(selector=4, image_path=None):
     region = game_region(img)
 
     print("Detecting dominos...")
-    dominos, annotated = domino_finder(region, img)
+    dominos, annotated, *_ = domino_finder(region, img)
 
     # Display results
     # Resize for display if image is large
