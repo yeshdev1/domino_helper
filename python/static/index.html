@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Domino Helper</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Domino Helper</h1>
+            <p class="subtitle">Take a photo of your domino game to analyze it</p>
+        </header>
+
+        <!-- Capture Section -->
+        <section class="capture-section">
+            <button id="btn-camera" class="btn btn-primary">Take Photo</button>
+            <button id="btn-gallery" class="btn btn-secondary">Choose from Gallery</button>
+            <input type="file" id="input-camera" accept="image/*" capture="environment" hidden>
+            <input type="file" id="input-gallery" accept="image/*" hidden>
+        </section>
+
+        <!-- Preview Section -->
+        <section id="preview-section" class="preview-section hidden">
+            <img id="preview-img" alt="Preview">
+            <div class="preview-actions">
+                <button id="btn-analyze" class="btn btn-primary">Analyze</button>
+                <button id="btn-retake" class="btn btn-secondary">Retake</button>
+            </div>
+        </section>
+
+        <!-- Loading -->
+        <section id="loading-section" class="loading-section hidden">
+            <div class="spinner"></div>
+            <p>Analyzing dominos...</p>
+        </section>
+
+        <!-- Results Section -->
+        <section id="results-section" class="results-section hidden">
+            <h2>Results</h2>
+
+            <div id="result-image-container" class="result-image-container">
+                <img id="result-img" alt="Annotated result">
+            </div>
+
+            <div id="summary-card" class="summary-card"></div>
+
+            <div id="sums-container" class="sums-container"></div>
+
+            <details id="domino-details">
+                <summary>Domino Details</summary>
+                <div id="domino-table-container"></div>
+            </details>
+
+            <button id="btn-new" class="btn btn-primary btn-new">Analyze Another</button>
+        </section>
+
+        <!-- Error -->
+        <section id="error-section" class="error-section hidden">
+            <p id="error-msg"></p>
+            <button id="btn-dismiss-error" class="btn btn-secondary">Try Again</button>
+        </section>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
