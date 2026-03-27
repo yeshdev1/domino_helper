@@ -1,39 +1,60 @@
 """
-gameRegion.m -> game_region.py
+game_region.py — Modernized image preprocessing.
 
-Preprocesses the game image: applies an averaging filter, converts to grayscale,
-applies Otsu's threshold, and inverts the binary image to isolate domino regions.
+Replaces the original 15x15 average filter + global Otsu threshold with:
+  - Gaussian blur (better edge preservation than box filter)
+  - Adaptive Gaussian thresholding (handles uneven lighting)
+  - Morphological cleanup (closes small gaps in center lines)
 """
 
 import numpy as np
 import cv2
 
 
-def game_region(img):
+def game_region(img, block_size=51, C=10, morph_kernel_size=3):
     """
-    Convert a color image of a domino game into a binary region image.
+    Convert a color image of a domino game into a clean binary region image.
 
     Parameters
     ----------
     img : np.ndarray
         BGR color image (as read by cv2.imread).
+    block_size : int
+        Block size for adaptive thresholding (must be odd). Larger values
+        handle more gradual lighting changes. Default 51.
+    C : int
+        Constant subtracted from the adaptive threshold mean. Higher values
+        make thresholding more aggressive (fewer white pixels). Default 10.
+    morph_kernel_size : int
+        Size of the morphological structuring element for cleanup. Default 3.
 
     Returns
     -------
     region : np.ndarray
-        Binary image (uint8, values 0 or 1) where 1 = foreground (domino features).
+        Binary image (uint8, values 0 or 255) where 255 = foreground.
     """
-    # Average filter 15x15
-    kernel = np.ones((15, 15), np.float64) / (15 * 15)
-    img_filtered = cv2.filter2D(img, -1, kernel, borderType=cv2.BORDER_REPLICATE)
-
     # Convert to grayscale
-    gray = cv2.cvtColor(img_filtered, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # Otsu's threshold (equivalent to graythresh + im2bw)
-    _, bw = cv2.threshold(gray, 0, 1, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    # Light Gaussian blur to reduce noise without destroying dot edges
+    gray = cv2.GaussianBlur(gray, (5, 5), 0)
 
-    # Invert (~ BW in MATLAB)
-    region = 1 - bw
+    # Adaptive Gaussian threshold — handles uneven lighting across the board
+    # much better than global Otsu, which fails when one side is brighter
+    bw = cv2.adaptiveThreshold(
+        gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY, block_size, C
+    )
+
+    # Invert so domino features (dots, lines) are white (255)
+    region = cv2.bitwise_not(bw)
+
+    # Morphological close to bridge small gaps in center lines,
+    # then open to remove isolated noise pixels
+    kernel = cv2.getStructuringElement(
+        cv2.MORPH_ELLIPSE, (morph_kernel_size, morph_kernel_size)
+    )
+    region = cv2.morphologyEx(region, cv2.MORPH_CLOSE, kernel, iterations=1)
+    region = cv2.morphologyEx(region, cv2.MORPH_OPEN, kernel, iterations=1)
 
     return region

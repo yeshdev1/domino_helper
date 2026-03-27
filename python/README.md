@@ -1,20 +1,37 @@
 # Domino Helper - Python
 
-A Python port of the MATLAB Domino Helper project. Takes a picture of an ongoing dominos game and analyzes the board to detect dominos, count dots, identify rows and columns, and compute sums to help predict the next best move.
+A modernized Python implementation of the MATLAB Domino Helper project. Takes a picture of an ongoing dominos game and analyzes the board to detect dominos, count dots, identify rows and columns, and compute sums to help predict the next best move.
+
+## What Changed from the MATLAB Original
+
+| Aspect | MATLAB / Old Python | Modernized Python |
+|--------|-------------------|-------------------|
+| **Contour detection** | Custom Moore tracing (pure Python pixel loops) | `cv2.findContours` (C-optimized, ~100x faster) |
+| **Preprocessing** | 15x15 box filter + global Otsu threshold | Gaussian blur + adaptive threshold + morphological cleanup |
+| **Classification** | Circumference matching (hardcoded threshold=50) | Area + circularity ratios (resolution-independent) |
+| **Dot positions** | First boundary point | Centroid via `cv2.moments` (more robust) |
+| **Dot counting** | Python for-loops | Vectorized NumPy boolean masks |
+| **Lighting** | Fails on uneven lighting (global threshold) | Handles uneven lighting (adaptive threshold) |
+| **File count** | 22 files | 13 files (9 obsolete files removed) |
 
 ## How It Works
 
-1. **Image Preprocessing** (`game_region.py`): Applies a 15x15 averaging filter, converts to grayscale, applies Otsu's thresholding, and inverts the binary image to isolate domino features.
+1. **Image Preprocessing** (`game_region.py`): Gaussian blur for noise reduction, adaptive Gaussian thresholding to handle uneven lighting, morphological close/open to bridge center-line gaps and remove noise.
 
-2. **Boundary Tracing** (`moore_tracing.py`, `get_neighbourhood.py`): Custom Moore neighborhood boundary tracing scans the binary image for white-to-black transitions and traces each contour. This replaces MATLAB's `bwboundaries`.
+2. **Contour Detection** (`domino_finder.py`): Uses OpenCV's `cv2.findContours` with `RETR_TREE` hierarchy to find all contours in one C-optimized call.
 
-3. **Domino Detection** (`domino_finder.py`): Identifies circles (dots) by finding the most common boundary circumference. Center lines are detected as boundaries ~3x the circle size. Each domino's bounding box, orientation (vertical/horizontal), and dot counts per half are extracted.
+3. **Contour Classification** (`domino_finder.py`): Classifies contours using area and circularity (4*pi*area/perimeter^2):
+   - **Dots**: Small area, high circularity (>0.45), most numerous group
+   - **Center lines**: Medium area (~9x dot area), low circularity (<0.55)
+   - **Noise/border**: Filtered out by minimum area and hierarchy level
 
-4. **Adjacency Classification** (`adj_helper.py`): Builds a relation matrix encoding how each pair of dominos is spatially positioned (same row, same column, relative positions).
+4. **Dot Counting** (`domino_finder.py`): Computes centroids via `cv2.moments`, then uses vectorized NumPy masks to count dots in each domino half.
 
-5. **Row/Column Analysis** (`get_rows.py`, `get_cols.py`): Traverses the adjacency graph to find connected rows and columns, computing the sum of dots along each line.
+5. **Adjacency Classification** (`adj_helper.py`): Builds a relation matrix encoding spatial relationships between domino pairs using 12 relation codes.
 
-6. **Result Annotation**: Overlays row and column sums on the original image.
+6. **Row/Column Analysis** (`get_rows.py`, `get_cols.py`): Graph traversal to find connected rows/columns and compute dot sums.
+
+7. **Result Annotation**: Overlays row and column sums on the original image.
 
 ## Requirements
 
@@ -57,6 +74,18 @@ The selector numbers correspond to:
 python -m domino_helper 1 /path/to/your/domino_game.jpg
 ```
 
+### Tuning preprocessing parameters
+
+```python
+from domino_helper.game_region import game_region
+import cv2
+
+img = cv2.imread('path/to/image.jpg')
+
+# Adjust for difficult lighting conditions
+region = game_region(img, block_size=71, C=15, morph_kernel_size=5)
+```
+
 ### As a library
 
 ```python
@@ -72,34 +101,25 @@ dominos, annotated = domino_finder(region, img)
 # [top, bottom, left, right, vert(0)/hor(1), top_dots, bottom_dots]
 ```
 
-## File Mapping (MATLAB to Python)
+## File Structure
 
-| MATLAB File | Python File | Description |
+| Python File | MATLAB Origin | Description |
 |---|---|---|
-| `main.m` | `domino_helper/main.py` | Entry point |
-| `gameRegion.m` | `domino_helper/game_region.py` | Image preprocessing |
-| `dominoFinder.m` | `domino_helper/domino_finder.py` | Core domino detection |
-| `mooreTracing.m` | `domino_helper/moore_tracing.py` | Boundary tracing |
-| `getNeighbourhood.m` | `domino_helper/get_neighbourhood.py` | Moore neighborhood lookup |
-| `adjHelper.m` | `domino_helper/adj_helper.py` | Adjacency classification |
-| `getRows.m` | `domino_helper/get_rows.py` | Row detection & sums |
-| `getCols.m` | `domino_helper/get_cols.py` | Column detection & sums |
-| `leftDom.m` | `domino_helper/left_dom.py` | Left neighbor lookup |
-| `rightDom.m` | `domino_helper/right_dom.py` | Right neighbor lookup |
-| `topDom.m` | `domino_helper/top_dom.py` | Top neighbor lookup |
-| `bottomDom.m` | `domino_helper/bottom_dom.py` | Bottom neighbor lookup |
-| `rowSumLoc.m` | `domino_helper/row_sum_loc.py` | Row sum text position |
-| `colSumLoc.m` | `domino_helper/col_sum_loc.py` | Column sum text position |
-| `cornerDetector.m` | `domino_helper/corner_detector.py` | Alt detection (contour-based) |
-| `theoTracing.m` | `domino_helper/theo_tracing.py` | Alt tracing (experimental) |
-| `getTheoNeighbourhood.m` | `domino_helper/get_theo_neighbourhood.py` | Alt neighborhood lookup |
-| `leftlookup.m` | `domino_helper/left_lookup.py` | Left pixel lookup |
-| `rightLook.m` | `domino_helper/right_look.py` | Right pixel lookup |
-| `upLook.m` | `domino_helper/up_look.py` | Up pixel lookup |
-| `downLook.m` | `domino_helper/down_look.py` | Down pixel lookup |
+| `domino_helper/main.py` | `main.m` | Entry point |
+| `domino_helper/game_region.py` | `gameRegion.m` | Image preprocessing (modernized) |
+| `domino_helper/domino_finder.py` | `dominoFinder.m` | Core detection pipeline (modernized) |
+| `domino_helper/adj_helper.py` | `adjHelper.m` | Adjacency classification |
+| `domino_helper/get_rows.py` | `getRows.m` | Row detection & sums |
+| `domino_helper/get_cols.py` | `getCols.m` | Column detection & sums |
+| `domino_helper/left_dom.py` | `leftDom.m` | Left neighbor lookup |
+| `domino_helper/right_dom.py` | `rightDom.m` | Right neighbor lookup |
+| `domino_helper/top_dom.py` | `topDom.m` | Top neighbor lookup |
+| `domino_helper/bottom_dom.py` | `bottomDom.m` | Bottom neighbor lookup |
+| `domino_helper/row_sum_loc.py` | `rowSumLoc.m` | Row sum text position |
+| `domino_helper/col_sum_loc.py` | `colSumLoc.m` | Column sum text position |
 
 ## Notes
 
-- The test images are in the `data/` directory at the repository root.
-- The Moore tracing algorithm is a faithful port of the custom MATLAB implementation (not using OpenCV's `findContours`).
-- The `corner_detector.py` and `theo_tracing.py` files are alternative/experimental implementations included for completeness.
+- Test images are in the `data/` directory at the repository root.
+- The original MATLAB custom Moore tracing and experimental tracing files have been replaced by OpenCV's optimized `findContours`. The MATLAB `.m` files are still in the repo root for reference.
+- Preprocessing parameters (`block_size`, `C`, `morph_kernel_size`) can be tuned per-image for difficult lighting conditions.
